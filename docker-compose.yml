@@ -11,7 +11,7 @@ services:
       - PORT=3000
       - DATABASE_URL=/app/data/app.db
       - SESSION_SECRET=insecure-secret-for-demo
-      - FRONTEND_URL=http://localhost:5173
+      - FRONTEND_URL=https://localhost:5173
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -31,10 +31,11 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_URL=http://localhost:3000/api
+      - VITE_API_URL=https://localhost:3000/api
     volumes:
       - ./frontend:/app
       - /app/node_modules
+      - ./backend/certs:/backend/certs:ro
     working_dir: /app
     command: npm run dev -- --host --port 5173
     depends_on:

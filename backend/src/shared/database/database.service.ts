@@ -22,7 +22,7 @@ export class DatabaseService implements OnModuleInit {
     this.db = new Database(dbPath);
     this.db.pragma('foreign_keys = ON');
 
-    const schemaPath = path.join(__dirname, '../../../database/schema.sql');
+    const schemaPath = path.join(__dirname, '../../../database/schema-freelance.sql');
     if (fs.existsSync(schemaPath)) {
       const schema = fs.readFileSync(schemaPath, 'utf-8');
       this.db.exec(schema);
