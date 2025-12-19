@@ -1,0 +1,48 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vuln-app-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_URL=/app/data/app.db
+      - SESSION_SECRET=insecure-secret-for-demo
+      - FRONTEND_URL=http://localhost:5173
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - ./backend/data:/app/data
+      - ./backend/public:/app/public
+    working_dir: /app
+    command: npm run start:dev
+    restart: unless-stopped
+    networks:
+      - vuln-app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vuln-app-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:3000/api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    working_dir: /app
+    command: npm run dev -- --host --port 5173
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - vuln-app-network
+
+networks:
+  vuln-app-network:
+    driver: bridge
