@@ -43,6 +43,7 @@ CREATE TABLE gigs (
   price REAL NOT NULL,
   delivery_days INTEGER NOT NULL,
   status TEXT CHECK(status IN ('active', 'paused', 'deleted')) DEFAULT 'active',
+  is_active INTEGER DEFAULT 1,
   views INTEGER DEFAULT 0,
   orders INTEGER DEFAULT 0,
   rating REAL DEFAULT 0,

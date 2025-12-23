@@ -33,7 +33,14 @@ export function GigDetailPage() {
     <Container className="py-8">
         <Button
           variant="secondary"
-          onClick={() => navigate('/gigs')}
+          onClick={() => {
+            // Freelancers manage their own gigs; clients/general users see public gigs
+            if (user?.role === 'freelancer') {
+              navigate('/gigs/my-gigs');
+            } else {
+              navigate('/gigs');
+            }
+          }}
           className="mb-6"
         >
           ← Back to Gigs

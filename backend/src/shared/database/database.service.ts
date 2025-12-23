@@ -27,6 +27,22 @@ export class DatabaseService implements OnModuleInit {
       const schema = fs.readFileSync(schemaPath, 'utf-8');
       this.db.exec(schema);
     }
+
+    this.ensureGigsIsActiveColumn();
+  }
+
+  private ensureGigsIsActiveColumn() {
+    // Align existing databases with the current schema expectation
+    const tableExists = this.db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'gigs'").get();
+    if (!tableExists) return;
+
+    const columns = this.db.prepare("PRAGMA table_info('gigs')").all();
+    const hasIsActive = columns.some((col: any) => col.name === 'is_active');
+
+    if (!hasIsActive) {
+      this.db.exec('ALTER TABLE gigs ADD COLUMN is_active INTEGER DEFAULT 1');
+      this.db.exec('UPDATE gigs SET is_active = 1 WHERE is_active IS NULL');
+    }
   }
 
   query<T = unknown>(sql: string, params: unknown[] = []): T[] {
