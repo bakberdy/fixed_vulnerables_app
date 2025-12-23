@@ -139,8 +139,8 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  console.log(`🔒 Application is running on: https://localhost:${port}/api`);
-  console.log(`📚 Swagger API docs: https://localhost:${port}/api/docs`);
-  console.log(`✅ HTTPS enabled with self-signed certificates`);
+  console.log(`Application is running on: https://localhost:${port}/api`);
+  console.log(`Swagger API docs: https://localhost:${port}/api/docs`);
+  console.log(`HTTPS enabled with self-signed certificates`);
 }
 bootstrap();
