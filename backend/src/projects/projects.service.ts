@@ -49,7 +49,8 @@ export class ProjectsService {
     return {
       ...project,
       skills: [],
-      proposals_count: proposalsData[0]?.count || 0
+      proposals_count: proposalsData[0]?.count || 0,
+      has_submitted_proposal: false
     };
   }
 
@@ -195,8 +196,23 @@ export class ProjectsService {
     const isOwner = project.client_id === userId;
     const isAdmin = userRole === 'admin';
 
+    // Track whether this freelancer already submitted a proposal
+    let hasSubmittedProposal = false;
+    if (userRole === 'freelancer') {
+      const hasProposal = this.db.query(
+        'SELECT id FROM proposals WHERE project_id = ? AND freelancer_id = ?',
+        [id, userId]
+      );
+      hasSubmittedProposal = hasProposal.length > 0;
+    }
+
+    // Allow any authenticated freelancer to view projects (browsing/deciding to bid)
+    if (userRole === 'freelancer') {
+      return { ...project, has_submitted_proposal: hasSubmittedProposal };
+    }
+
     if (isOwner || isAdmin) {
-      return project;
+      return { ...project, has_submitted_proposal: hasSubmittedProposal };
     }
 
     const hasProposal = this.db.query(
@@ -205,7 +221,7 @@ export class ProjectsService {
     );
 
     if (hasProposal.length > 0) {
-      return project;
+      return { ...project, has_submitted_proposal: hasSubmittedProposal };
     }
 
     throw new ForbiddenException('You do not have permission to view this project');

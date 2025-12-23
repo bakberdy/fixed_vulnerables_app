@@ -16,4 +16,5 @@ export interface Project {
 export interface ProjectWithDetails extends Project {
   skills: string[];
   proposals_count: number;
+  has_submitted_proposal?: boolean;
 }

@@ -7,6 +7,7 @@ export function ProposalListPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadProposals();
@@ -16,8 +17,10 @@ export function ProposalListPage() {
     try {
       const response = await apiClient.get(`/proposals/project/${projectId}`);
       setProposals(response.data);
+      setError(null);
     } catch (error) {
       console.error('Failed to load proposals:', error);
+      setError('Unable to load proposals. Please check your connection or login session.');
     } finally {
       setLoading(false);
     }
@@ -73,6 +76,12 @@ export function ProposalListPage() {
             ← Back to Project
           </Link>
         </div>
+
+        {error && (
+          <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+            {error}
+          </div>
+        )}
 
         {proposals.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-8 text-center">

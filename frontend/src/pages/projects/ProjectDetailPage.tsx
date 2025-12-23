@@ -1,15 +1,33 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useProjectDetails } from '@/features/projects';
 import { Loading, Alert, Button, Card, Container, FileUpload, FileGallery } from '@/shared/ui';
+import { useAuth } from '@/app/providers/AuthProvider';
+import { apiClient } from '@/shared/api/client';
 
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const projectId = Number(id);
   const [refreshKey, setRefreshKey] = useState(0);
+  const { user } = useAuth();
+  const [proposalsCount, setProposalsCount] = useState<number | null>(null);
   
   const { project, isLoading, error } = useProjectDetails(projectId);
+
+  useEffect(() => {
+    const fetchProposalsCount = async () => {
+      if (!user || user.role !== 'client') return;
+      try {
+        const { data } = await apiClient.get(`/proposals/project/${projectId}`);
+        setProposalsCount(Array.isArray(data) ? data.length : 0);
+      } catch {
+        setProposalsCount(null);
+      }
+    };
+
+    fetchProposalsCount();
+  }, [projectId, user]);
 
   if (isLoading) {
     return (
@@ -33,7 +51,14 @@ export function ProjectDetailPage() {
     <Container className="py-8">
         <Button
           variant="secondary"
-          onClick={() => navigate('/projects')}
+          onClick={() => {
+            // Clients manage their projects; freelancers browse public projects
+            if (user?.role === 'client') {
+              navigate('/projects/my-projects');
+            } else {
+              navigate('/projects');
+            }
+          }}
           className="mb-6"
         >
           ← Back to Projects
@@ -72,6 +97,23 @@ export function ProjectDetailPage() {
                 {new Date(project.created_at).toLocaleDateString()}
               </p>
             </div>
+
+            {user?.role === 'client' && (
+              <div className="space-y-2">
+                <div>
+                  <p className="text-sm text-gray-600">Proposals</p>
+                  <p className="font-semibold text-gray-900">{proposalsCount ?? project.proposals_count ?? 0}</p>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => navigate(`/proposals/project/${project.id}`)}
+                >
+                  View proposals
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="mb-6">
@@ -83,16 +125,28 @@ export function ProjectDetailPage() {
             </div>
           </div>
 
-          {project.status === 'open' && (
-            <div className="pt-6 border-t border-gray-200">
+          {project.status === 'open' && user?.role === 'freelancer' && (
+            <div className="pt-6 border-t border-gray-200 space-y-3">
+              {project.has_submitted_proposal && (
+                <p className="text-sm text-green-700 bg-green-50 border border-green-100 rounded px-3 py-2">
+                  You already submitted a proposal for this project.
+                </p>
+              )}
               <Button
                 size="lg"
                 className="w-full"
+                disabled={project.has_submitted_proposal}
                 onClick={() => navigate(`/proposals/submit?project=${project.id}`)}
               >
-                Submit Proposal
+                {project.has_submitted_proposal ? 'Proposal Submitted' : 'Submit Proposal'}
               </Button>
             </div>
+          )}
+
+          {project.status === 'open' && user?.role === 'client' && (
+            <p className="pt-6 border-t border-gray-200 text-sm text-gray-600">
+              Only freelancers can submit proposals. Track proposals count above.
+            </p>
           )}
         </Card>
 

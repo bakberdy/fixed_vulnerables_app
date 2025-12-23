@@ -15,6 +15,7 @@ export interface Project {
   client_avatar?: string;
   skills?: string[];
   proposals_count?: number;
+  has_submitted_proposal?: boolean;
 }
 
 export interface ProjectFilters {
